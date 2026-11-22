@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Splash</title>
+<script>window.SPLASH_URL='https://zserzobyuegvtmjemgvh.supabase.co';window.SPLASH_KEY='sb_publishable_X5gm0127Mj7CqDXGKi3dlg_z1Z0cgSm';</script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F1FAFB;--surface:#fff;--ink:#0A2540;--mute:#5B7188;--splash:#0EA5C6;--on:#fff;--line:#D5E6EA;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#06182B;--surface:#0D2640;--ink:#EAF6FA;--mute:#8FB0C4;--splash:#2CC8E8;--on:#06182B;--line:#1B3B58;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,sans-serif;font-size:16px;line-height:1.4}
+.app{max-width:480px;margin:0 auto;padding:16px 16px 60px}
+.logo{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:30px;letter-spacing:-.5px;color:var(--splash);margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.fld{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;margin-top:8px}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--splash);outline-offset:2px}
+.big{width:100%;border:0;background:var(--splash);color:var(--on);font-weight:800;font-size:17px;padding:14px;border-radius:16px;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px}
+.btn.on{background:var(--splash);color:var(--on);border-color:var(--splash)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:13px;margin-bottom:6px}
+.cap{font-size:18px;font-weight:600;margin:0}
+.tag{display:inline-block;margin-top:8px;background:color-mix(in srgb,var(--splash) 15%,transparent);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+h2{font-family:'Bricolage Grotesque',sans-serif;margin:0 0 6px;font-size:24px}
+.note{color:var(--mute);font-size:13px;margin:8px 0 0}
+.err{color:#D6334C;font-size:14px;margin:8px 0 0;min-height:1em}
+label.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-top:10px}
+label.chk input{width:20px;height:20px;margin-top:2px}
+</style>
+</head>
+<body>
+<main class="app">
+<div class="top"><h1 class="logo">Splash 💧</h1><button class="btn" id="out" hidden>Log out</button></div>
+
+<section id="auth">
+  <div style="display:flex;gap:8px"><button class="btn on" id="tUp">Sign up</button><button class="btn" id="tIn">Log in</button></div>
+  <p class="note">Share stories for 24 hours. Earn from every like.</p>
+  <input class="fld" id="name" placeholder="Your name" aria-label="Your name">
+  <input class="fld" id="age" type="number" inputmode="numeric" placeholder="Your age" aria-label="Your age">
+  <input class="fld" id="email" type="email" placeholder="Email" aria-label="Email">
+  <input class="fld" id="pw" type="password" placeholder="Password (6 or more characters)" aria-label="Password">
+  <button class="big" id="go">Join Splash</button>
+  <p class="err" id="aerr" role="alert"></p>
+</section>
+
+<section id="main" hidden>
+  <div class="card">
+    <h2>Post a story</h2>
+    <textarea class="fld" id="cap" rows="3" placeholder="What’s happening? It disappears in 24 hours." aria-label="Story text"></textarea>
+    <select class="fld" id="topic" aria-label="Topic"><option value="">Pick a topic</option><option>Funny</option><option>Food</option><option>Fitness</option><option>Music</option><option>Sports</option><option>Politics</option><option>Fashion</option><option>Business</option></select>
+    <select class="fld" id="rate" aria-label="Who is this for"><option value="all">For everyone</option><option value="mature" id="matOpt">Adults only (18+)</option></select>
+    <label class="chk"><input type="checkbox" id="ok"><span>I confirm this does not show private parts or sexual acts. Breaking this rule gets my account banned.</span></label>
+    <button class="big" id="post">Post for 24 hours</button>
+    <p class="err" id="perr" role="alert"></p>
+  </div>
+  <div class="top" style="margin-top:18px"><h2 style="margin:0">Live stories</h2><label class="chk" id="mWrap" style="margin:0" hidden><input type="checkbox" id="showM"><span>Show 18+</span></label></div>
+  <div id="feed"></div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const db=supabase.createClient(window.SPLASH_URL,window.SPLASH_KEY);
+let me=null,prof=null,signup=true;
+
+function mode(up){signup=up;$('#tUp').classList.toggle('on',up);$('#tIn').classList.toggle('on',!up);$('#name').hidden=$('#age').hidden=!up;$('#go').textContent=up?'Join Splash':'Log in';$('#aerr').textContent=''}
+async function enter(){
+  const {data}=await db.from('profiles').select('*').eq('id',me.id).maybeSingle();
+  prof=data;
+  if(!prof){$('#aerr').textContent='Profile not found. Please sign up again.';await db.auth.signOut();return}
+  $('#auth').hidden=true;$('#main').hidden=false;$('#out').hidden=false;
+  const adult=prof.age>=18;$('#matOpt').disabled=!adult;$('#mWrap').hidden=!adult;
+  feed();
+}
+async function feed(){
+  const {data,error}=await db.from('stories').select('id,caption,topic,rating,expires_at,profiles(name)').order('created_at',{ascending:false});
+  if(error){$('#feed').innerHTML='<p class="note">Could not load stories.</p>';return}
+  const adult=prof.age>=18,showM=$('#showM').checked;
+  const list=data.filter(s=>s.rating!=='mature'||(adult&&showM));
+  $('#feed').innerHTML=list.length?list.map(s=>{
+    const h=Math.max(0,Math.ceil((new Date(s.expires_at)-Date.now())/36e5));
+    return `<div class="card"><div class="meta"><b>${esc(s.profiles?.name||'Someone')}</b><span>${h}h left</span></div><p class="cap">${esc(s.caption)}</p><span class="tag">${s.rating==='mature'?'18+ · ':''}${esc(s.topic)}</span></div>`}).join(''):'<p class="note">No stories yet. Be the first to post.</p>';
+}
+$('#tUp').onclick=()=>mode(true);$('#tIn').onclick=()=>mode(false);
+$('#showM').onchange=feed;
+$('#go').onclick=async()=>{
+  const email=$('#email').value.trim(),pw=$('#pw').value,name=$('#name').value.trim(),age=+$('#age').value,err=$('#aerr');
+  err.textContent='';
+  if(!email||pw.length<6){err.textContent='Enter your email and a password of 6 or more characters.';return}
+  if(signup){
+    if(!name||!age){err.textContent='Enter your name and age.';return}
+    if(age<13){err.textContent='Splash is for people 13 and older.';return}
+    const {data,error}=await db.auth.signUp({email,password:pw});
+    if(error){err.textContent=error.message;return}
+    if(!data.session){err.textContent='Check your email to confirm your account, then log in.';return}
+    me=data.user;
+    const {error:e2}=await db.from('profiles').insert({id:me.id,name,age});
+    if(e2){err.textContent=e2.message;return}
+  }else{
+    const {data,error}=await db.auth.signInWithPassword({email,password:pw});
+    if(error){err.textContent=error.message;return}
+    me=data.user;
+  }
+  enter();
+};
+$('#post').onclick=async()=>{
+  const cap=$('#cap').value.trim(),topic=$('#topic').value,rating=$('#rate').value,err=$('#perr');
+  err.textContent='';
+  if(!cap){err.textContent='Write something first.';return}
+  if(!topic){err.textContent='Pick a topic first.';return}
+  if(!$('#ok').checked){err.textContent='Please confirm the content rules.';return}
+  const {error}=await db.from('stories').insert({user_id:me.id,caption:cap,topic,rating});
+  if(error){err.textContent=error.message;return}
+  $('#cap').value='';$('#topic').value='';$('#rate').value='all';$('#ok').checked=false;
+  feed();
+};
+$('#out').onclick=async()=>{await db.auth.signOut();location.reload()};
+(async()=>{mode(true);const {data}=await db.auth.getSession();if(data.session){me=data.session.user;enter()}})();
+</script>
+</body>
+</html>
